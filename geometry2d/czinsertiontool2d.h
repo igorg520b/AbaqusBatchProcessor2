@@ -23,18 +23,17 @@ public:
         int facet_idx[2] {};
         int orientation; // index of the node in facet 1 that matches node 0 in facet 0
         std::tuple<int,int> key;
-        static std::tuple<int,int> make_key(icy::Node2D *nd0, icy::Node2D *nd1)
+        static std::tuple<int,int> make_key(int nd0idx, int nd1idx)
         {
-            int nds[2] = {nd0->globId,nd1->globId};
-            std::sort(std::begin(nds),std::end(nds));
-            return std::tuple<int,int> (nds[0],nds[1]);
+            if(nd0idx > nd1idx) return std::tuple<int,int> (nd1idx,nd0idx);
+            else return std::tuple<int,int> (nd0idx,nd1idx);
         }
     };
 
     void InsertCZs(icy::Mesh2D &mesh);
 
 private:
-    void ReplaceNodeInElement(icy::Element2D *elem, icy::Node2D *whichNode, icy::Node2D *replacement);
+    void ReplaceNodeInElement(icy::Element2D *elem, int whichNode, int replacement);
 };
 
 #endif // CZINSERTIONTOOL_H

@@ -13,12 +13,12 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
     std::vector<NodeExtension> nExt;
     nExt.resize(nNodes);
 
-    for(icy::Element2D *elem : mesh.elems)
+    for(icy::Element2D &elem : mesh.elems)
     {
         for(int k=0;k<3;k++)
         {
-            nExt[elem->nds[k]->globId].adj_elems.push_back(elem);
-            nExt[elem->nds[k]->globId].adj_grains.push_back(elem->grainId);
+            nExt[elem.nds[k]].adj_elems.push_back(&elem);
+            nExt[elem.nds[k]].adj_grains.push_back(elem.grainId);
         }
     }
 
@@ -40,20 +40,20 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
     // FIND ALL FACETS
     std::map<std::tuple<int,int>,icy::CZInsertionTool2D::Facet> facets;
 
-    for(icy::Element2D *e : mesh.elems)
+    for(icy::Element2D &e : mesh.elems)
     {
         for(int k=0;k<3;k++)
         {
-            std::tuple<int,int> key = Facet::make_key(e->nds[Element2D::fi[k][0]], e->nds[Element2D::fi[k][1]]);
+            std::tuple<int,int> key = Facet::make_key(e.nds[Element2D::fi[k][0]], e.nds[Element2D::fi[k][1]]);
             Facet facet;
             facet.key = key;
-            facet.elems[0] = e;
+            facet.elems[0] = &e;
             facet.facet_idx[0] = k;
             auto result = facets.insert({key,facet});
             if(result.second == false)
             {
                 Facet &f = result.first->second;
-                f.elems[1] = e;
+                f.elems[1] = &e;
                 f.facet_idx[1] = k;
             }
         }
@@ -72,7 +72,7 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
         {
             facets_connecting_grains++;
             // synchronize the nodes
-            icy::Node2D *ref_node = f.elems[0]->nds[Element2D::fi[f.facet_idx[0]][0]];
+            int ref_node = f.elems[0]->nds[Element2D::fi[f.facet_idx[0]][0]];
             f.orientation = -1;
             for(int k=0;k<2;k++)
                 if(ref_node == f.elems[1]->nds[Element2D::fi[f.facet_idx[1]][k]]) f.orientation = k;
@@ -108,22 +108,19 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
         std::vector<int> &v = ndex.adj_grains;
         if(v.size() == 1) continue;
 
-        std::map<int, icy::Node2D*> insertedNodes;
-        icy::Node2D *nd = mesh.nodes[i];
-        insertedNodes.insert({v[0],nd});
+        std::map<int, int> insertedNodes;
+        icy::Node2D *nd = &mesh.nodes[i];
+        insertedNodes.insert({v[0],i});
 
         for(int i=1;i<v.size();i++)
         {
             icy::Node2D *insertedNode = mesh.AddNode();
             insertedNode->InitializeFromAnother(nd);
-            insertedNodes.insert({v[i],insertedNode});
+            insertedNodes.insert({v[i],insertedNode->globId});
         }
 
         for(icy::Element2D *elem : ndex.adj_elems)
-        {
-            ReplaceNodeInElement(elem, nd, insertedNodes.at(elem->grainId));
-        }
-
+            ReplaceNodeInElement(elem, i, insertedNodes.at(elem->grainId));
     }
     spdlog::info("cz nodes inserted; nodes.size() {}",mesh.nodes.size());
 
@@ -139,8 +136,8 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
             icy::CohesiveZone2D *cz = mesh.AddCZ();
             icy::Element2D *e0 = f.elems[0];
             icy::Element2D *e1 = f.elems[1];
-            cz->elems[0] = e0;
-            cz->elems[1] = e1;
+            cz->elems[0] = e0->elemId;
+            cz->elems[1] = e1->elemId;
             cz->faceIds[0] = (uint8_t)f.facet_idx[0];
             cz->faceIds[1] = (uint8_t)f.facet_idx[1];
             cz->nds[0] = e0->nds[Element2D::fi[f.facet_idx[0]][0]];
@@ -150,9 +147,10 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
             cz->nds[3] = e1->nds[Element2D::fi[f.facet_idx[1]][(1+f.orientation)%2]];
 
             for(int k=0;k<2;k++)
-                if(cz->nds[k]->x0 != cz->nds[k+2]->x0)
+                if(mesh.nodes[cz->nds[k]].x0 != mesh.nodes[cz->nds[k+2]].x0)
                 {
-                    for(int j=0;j<4;j++) spdlog::critical("nd {}; {},{}",j,cz->nds[j]->x0[0],cz->nds[j]->x0[1]);
+                    for(int j=0;j<4;j++) spdlog::critical("nd {}; {},{}",j,
+                                                          mesh.nodes[cz->nds[j]].x0[0],mesh.nodes[cz->nds[j]].x0[1]);
                     spdlog::critical("f.orientation {}", f.orientation);
                     throw std::runtime_error("cz insertion error  - 2D");
                 }
@@ -161,7 +159,7 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
     spdlog::info("czs inserted; czs.size() {}",mesh.czs.size());
 }
 
-void icy::CZInsertionTool2D::ReplaceNodeInElement(icy::Element2D *elem, icy::Node2D *whichNode, icy::Node2D *replacement)
+void icy::CZInsertionTool2D::ReplaceNodeInElement(icy::Element2D *elem, int whichNode, int replacement)
 {
     if(whichNode == replacement) return;
     for(int i=0;i<3;i++)
