@@ -12,10 +12,8 @@ struct icy::Node2D
     Node2D() { Reset(); incident_faces.reserve(8); }
 
     void Reset();
-    void InitializeFromAnother(icy::Node2D *other);
 
     int globId;               // id in fragment; id in mesh; id in freenode list;
-    bool pinned;                    // the position of the node is set externally
     bool surface;
     int group = 0;
 

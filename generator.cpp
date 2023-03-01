@@ -26,6 +26,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     // GET NODES
     gmsh::model::mesh::getNodesByElementType(2, nodeTags, nodeCoords, parametricCoords);
 
+    spdlog::info("reading nodes");
     for(unsigned i=0;i<nodeTags.size();i++)
     {
         std::size_t tag = nodeTags[i];
@@ -39,8 +40,8 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     std::vector<std::pair<int,int>> dimTagsGrains;
     gmsh::model::getEntities(dimTagsGrains,2);
 
+    spdlog::info("reading per-grain elements");
     std::unordered_set<int> used_nodes;
-
     for(std::size_t j=0;j<dimTagsGrains.size();j++)
     {
         std::vector<std::size_t> trisTags, nodeTagsInTris;
@@ -67,7 +68,8 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
                 // cropType 6 -> small keel with indenter at 6.0
                 // cropType 7 -> tall keel with indenter at 5.0
                 // cropType 8 -> tall keel with indenter at 6.0
-                if(cropType >=1 && cropType <=4 && x > indenterX && y > (indenterY-indenterRadius)) crop = true;
+                if(cropType >=1 && cropType <=4 && x < indenterX && y > (indenterY-indenterRadius)) crop = true;
+                if(cropType >=5 && cropType <=8 && x > indenterX && y < (indenterY-indenterRadius)) crop = true;
 
 
             }
@@ -108,8 +110,28 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     // attach bottom
     if(cropType >=1 && cropType <=4)
     {
+        fX = 0.200538 * 1e6;
+        fY = -0.979686 * 1e6; // corresponds to angle -78.4316 degrees
+        const double bH = (cropType == 1 || cropType == 2) ? 1.0 : 2.0; // block height
+        const double iR = indenterRadius+1e-3;
+        double a1 = -1.570796326794897;
+        double a2 = -1.16698;
         for(icy::Node2D &nd : mesh2d.nodes)
-            if(nd.x0.y()==0) nd.group = 2;
+        {
+            double y = nd.x0.y();
+            double dx = nd.x0.x()-indenterX;
+            double dy = nd.x0.y()-indenterY;
+            if(y==0)
+            {
+                nd.group = 2;
+            }
+            else
+            {
+                double a = atan2(dy,dx);
+                if(a>=a1 && a<=a2 && (dx*dx+dy*dy <= iR*iR)) nd.group=5;
+            }
+        }
+
     }
     else if(cropType == 5 || cropType == 6)
     {
@@ -201,13 +223,20 @@ void Generator::CreatePy2D(std::string outputFileName)
     }
 
     // region - pinned nodes
-
     s << "region3pinned = (";
     for(const icy::Node2D &nd : mesh2d.nodes)
         if(nd.group==2)
             s << "p.nodes["<<nd.globId<<":"<<nd.globId+1<<"],";
     s << ")\n";
     s << "p.Set(nodes=region3pinned,name='Set3-pinned')\n";
+
+    // forced nodes
+    s << "region5forced = (";
+    for(const icy::Node2D &nd : mesh2d.nodes)
+        if(nd.group==5)
+            s << "p.nodes["<<nd.globId<<":"<<nd.globId+1<<"],";
+    s << ")\n";
+    s << "p.Set(nodes=region5forced,name='Set5-forced')\n";
 
     // create bulk material
     s << "mat1 = mdb.models['Model-1'].Material(name='Material-1-bulk')\n";
@@ -265,6 +294,15 @@ void Generator::CreatePy2D(std::string outputFileName)
 
     // gravity load
     s << "mdb.models['Model-1'].Gravity(name='Load-1', createStepName='Step-1',comp2=-10.0, distributionType=UNIFORM, field='')\n";
+
+    // force load
+    s << "mdb.models['Model-1'].TabularAmplitude(data=((0.0, 0.0), (0.1, 1.0)), name="
+         "'Amp-1', smooth=SOLVER_DEFAULT, timeSpan=STEP)\n";
+
+    s << "mdb.models['Model-1'].ConcentratedForce(amplitude='Amp-1', cf1=" << fX << ", cf2=" << fY <<
+         ", createStepName='Step-1', distributionType=UNIFORM, field='', "
+         "localCsys=None, name='Load-2', region="
+         "mdb.models['Model-1'].rootAssembly.instances['MyPart1-1'].sets['Set5-forced'])\n";
 
     // BC - pinned nodes
     s << "region = inst1.sets['Set3-pinned']\n";

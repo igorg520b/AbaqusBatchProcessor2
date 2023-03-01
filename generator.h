@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFileInfo>
 
+#include <cmath>
 class Generator
 {
 public:
@@ -17,8 +18,8 @@ public:
 
     double interactionRadius = 0.01; // for exponential interaction property
 
-    double timeToRun = 0.1;
-    int nFrames = 400;
+    double timeToRun = 0.06;
+    int nFrames = 300;
 
     bool loadWithIndenter = true;   // if false -> static load
 
@@ -27,6 +28,8 @@ public:
     constexpr static double czsStrength = 4e6;
     constexpr static double czElasticity = 1e11;
     constexpr static double czEnergy = 100;
+
+    double fX, fY;  // force components for load
 
     icy::Mesh2D mesh2d;
 

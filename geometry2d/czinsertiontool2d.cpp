@@ -109,13 +109,13 @@ void icy::CZInsertionTool2D::InsertCZs(icy::Mesh2D &mesh)
         if(v.size() == 1) continue;
 
         std::map<int, int> insertedNodes;
-        icy::Node2D *nd = &mesh.nodes[i];
+        Eigen::Vector2d x0 = mesh.nodes[i].x0;
         insertedNodes.insert({v[0],i});
 
         for(int i=1;i<v.size();i++)
         {
             icy::Node2D *insertedNode = mesh.AddNode();
-            insertedNode->InitializeFromAnother(nd);
+            insertedNode->x0 = x0;
             insertedNodes.insert({v[i],insertedNode->globId});
         }
 
