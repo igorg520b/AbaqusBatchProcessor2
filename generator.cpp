@@ -69,7 +69,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
                 // cropType 7 -> tall keel with indenter at 5.0
                 // cropType 8 -> tall keel with indenter at 6.0
                 if(cropType >=1 && cropType <=4 && x < indenterX && y > (indenterY-indenterRadius)) crop = true;
-                if(cropType >=5 && cropType <=8 && x > indenterX && y < (indenterY-indenterRadius)) crop = true;
+                if(cropType >=5 && cropType <=8 && x > indenterX && y < (indenterRadius)) crop = true;
 
 
             }
@@ -108,12 +108,12 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
 
 
     // attach bottom
+    const double iR = indenterRadius+1e-3;
     if(cropType >=1 && cropType <=4)
     {
         fX = 0.200538 * 1e6;
         fY = -0.979686 * 1e6; // corresponds to angle -78.4316 degrees
         const double bH = (cropType == 1 || cropType == 2) ? 1.0 : 2.0; // block height
-        const double iR = indenterRadius+1e-3;
         double a1 = -1.570796326794897;
         double a2 = -1.16698;
         for(icy::Node2D &nd : mesh2d.nodes)
@@ -125,23 +125,53 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
             {
                 nd.group = 2;
             }
-            else
+            else if(dx*dx+dy*dy <= iR*iR)
             {
                 double a = atan2(dy,dx);
-                if(a>=a1 && a<=a2 && (dx*dx+dy*dy <= iR*iR)) nd.group=5;
+                if(a>=a1 && a<=a2) nd.group=5;
             }
         }
 
     }
     else if(cropType == 5 || cropType == 6)
     {
+        double a1 = 1.570796326794897;
+        double a2 = 2.356194490192345;
+        double avg = (a1+a2)/2;
+        fX = 1e6 * cos(avg);
+        fY = 1e6 * sin(avg);
         for(icy::Node2D &nd : mesh2d.nodes)
-            if(nd.x0.y()>1.0-1e-5) nd.group = 2;
+        {
+            double y = nd.x0.y();
+            double dx = nd.x0.x()-indenterX;
+            double dy = nd.x0.y()-indenterY;
+            if(y>1.0-1e-5) nd.group = 2;
+            else if(dx*dx+dy*dy <= iR*iR)
+            {
+                double a = atan2(dy,dx);
+                if(a>=a1 && a<=a2) nd.group=5;
+            }
+        }
     }
-    else
+    else if(cropType == 7 || cropType == 8)
     {
+        double a1 = 1.570796326794897;
+        double a2 = 2.356194490192345;
+        double avg = (a1+a2)/2;
+        fX = 1e6 * cos(avg);
+        fY = 1e6 * sin(avg);
         for(icy::Node2D &nd : mesh2d.nodes)
-            if(nd.x0.y()>2.0-1e-5) nd.group = 2;
+        {
+            double y = nd.x0.y();
+            double dx = nd.x0.x()-indenterX;
+            double dy = nd.x0.y()-indenterY;
+            if(y>2.0-1e-5) nd.group = 2;
+            else if(dx*dx+dy*dy <= iR*iR)
+            {
+                double a = atan2(dy,dx);
+                if(a>=a1 && a<=a2) nd.group=5;
+            }
+        }
     }
 
 

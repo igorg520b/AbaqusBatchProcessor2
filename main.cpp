@@ -79,12 +79,29 @@ int main(int argc, char *argv[])
 //        g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.111925, 2);
 //        g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.111925, 3);
 //        g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.111925, 4);
-//        g.LoadFromFileWithCrop(keelL0[i], 5.0, 0, 5);
+        g.LoadFromFileWithCrop(keelL0[i], 5.0, 0, 5);
 //        g.LoadFromFileWithCrop(keelL1[i], 6.0, 0, 6);
 //        g.LoadFromFileWithCrop(keelH0[i], 5.0, 0, 7);
-        g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
+//        g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
     }
 
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(keelL1[i], 6.0, 0, 6);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(keelH0[i], 5.0, 0, 7);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
+    }
 
 
 }
