@@ -15,6 +15,10 @@
 
 void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, double indenterY, int cropType)
 {
+    setupType = cropType;
+    this->indenterY = indenterY;
+    this->indenterX = indenterX;
+
     spdlog::info("loading from file {}",MSHFileName);
     gmsh::initialize();
     gmsh::open(MSHFileName);
@@ -111,8 +115,9 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     const double iR = indenterRadius+1e-3;
     if(cropType >=1 && cropType <=4)
     {
-        fX = 0.200538 * 1e6;
-        fY = -0.979686 * 1e6; // corresponds to angle -78.4316 degrees
+        double alpha = forceAngle * pi/180.;
+        fX = forceMagnitude * cos(alpha);
+        fY = -forceMagnitude * sin(alpha);
         const double bH = (cropType == 1 || cropType == 2) ? 1.0 : 2.0; // block height
         double a1 = -1.570796326794897;
         double a2 = -1.16698;
@@ -182,7 +187,9 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
 
     QFileInfo fi(QString(MSHFileName.c_str()));
 
-    CreatePy2D(fi.baseName().toStdString());
+    fileName = fi.baseName().toStdString();
+
+    CreatePy2D(fileName);
 
     spdlog::info("LoadFromFile done");
 }
@@ -365,3 +372,17 @@ void Generator::CreatePy2D(std::string outputFileName)
     s.close();
 }
 
+
+
+void Generator::AddEntryToJobGeneratorBat(std::ofstream &s)
+{}
+
+void Generator::AddEntryToJobExecutionBat(std::ofstream &s)
+{}
+
+
+void Generator::AddEntryToBinaryExportBat(std::ofstream &s)
+{}
+
+void Generator::CreateExportScript(std::string outputFileName)
+{}

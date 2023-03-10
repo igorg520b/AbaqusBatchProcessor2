@@ -7,6 +7,7 @@
 #include "generator.h"
 
 #include <string>
+#include <fstream>
 
 
 int main(int argc, char *argv[])
@@ -72,17 +73,45 @@ int main(int argc, char *argv[])
                           "C:\\Users\\s\\Projects\\GitHub\\AbaqusBatchProcessor2\\meshes\\keelH1\\wns5.msh"};
 
 
+    std::ofstream sjg;
+    sjg.open("results\\jobgenerator.bat", std::ios_base::trunc|std::ios_base::out);
+
+    Generator g;
+    g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
+    g.AddEntryToJobGeneratorBat(sjg);
+
+/*
+    // RHITA block
     for(int i=0;i<5;i++)
     {
         Generator g;
-//        g.LoadFromFileWithCrop(rhitaL1[i], 1.0, 1.111925, 1);
-//        g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.111925, 2);
-//        g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.111925, 3);
-//        g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.111925, 4);
+        g.LoadFromFileWithCrop(rhitaL1[i], 1.0, 1.111925, 1);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.111925, 2);
+    }
+
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.111925, 3);
+    }
+
+
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.111925, 4);
+    }
+
+    // Keel
+    for(int i=0;i<5;i++)
+    {
+        Generator g;
         g.LoadFromFileWithCrop(keelL0[i], 5.0, 0, 5);
-//        g.LoadFromFileWithCrop(keelL1[i], 6.0, 0, 6);
-//        g.LoadFromFileWithCrop(keelH0[i], 5.0, 0, 7);
-//        g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
     }
 
     for(int i=0;i<5;i++)
@@ -102,6 +131,6 @@ int main(int argc, char *argv[])
         Generator g;
         g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
     }
-
-
+*/
+    sjg.close();
 }
