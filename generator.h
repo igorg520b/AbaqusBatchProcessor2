@@ -9,6 +9,7 @@
 #include <QFileInfo>
 
 #include <cmath>
+#include <iomanip>
 
 constexpr double tekscanRowToAngle(int row) { return (3.14159265358979323846/2 - 1.27713*(38-row)/44.); }
 
@@ -24,7 +25,6 @@ public:
     constexpr static double forceAngle = 45*pi/180.; // in degrees
     constexpr static double cropStart = tekscanRowToAngle(10);
     constexpr static double cropEnd = tekscanRowToAngle(20);
-
 
     constexpr static bool useNormalDistribution = false;
 
@@ -43,7 +43,7 @@ public:
 
     icy::Mesh2D mesh2d;
 
-    std::string AbaqusExecutablePath = "";
+    std::string AbaqusExecutablePath = "G:\\SIMULIA\\Commands\\abaqus.bat";
 
     void LoadFromFileWithCrop(std::string MSHFileName, double indenterX, double indenterY, int cropType);
     void AddEntryToJobGeneratorBat(std::ofstream &s);
@@ -51,8 +51,8 @@ public:
     void AddEntryToBinaryExportBat(std::ofstream &s);
 private:
     std::string fileName;
-    void CreatePy2D(std::string outputFileName);
-    void CreateExportScript(std::string outputFileName);
+    void CreatePy2D();
+    void CreateExportScript();
 };
 
 #endif // GENERATOR_H

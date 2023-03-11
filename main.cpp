@@ -2,6 +2,7 @@
 #include <QCommandLineParser>
 #include <QDebug>
 #include <QFileInfo>
+#include <QDir>
 
 #include "gmsh.h"
 #include "generator.h"
@@ -73,12 +74,21 @@ int main(int argc, char *argv[])
                           "C:\\Users\\s\\Projects\\GitHub\\AbaqusBatchProcessor2\\meshes\\keelH1\\wns5.msh"};
 
 
-    std::ofstream sjg;
+    if(!QDir("results").exists()) QDir().mkdir("results");
+    if(!QDir("inp").exists()) QDir().mkdir("inp");
+    if(!QDir("exportscripts").exists()) QDir().mkdir("exportscripts");
+
+    std::ofstream sjg, sje,sjexp;
     sjg.open("results\\jobgenerator.bat", std::ios_base::trunc|std::ios_base::out);
+    sje.open("inp\\jobexecutor.bat", std::ios_base::trunc|std::ios_base::out);
+    sjexp.open("results\\jobexport.bat", std::ios_base::trunc|std::ios_base::out);
 
     Generator g;
     g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
     g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+
 
 /*
     // RHITA block
@@ -133,4 +143,6 @@ int main(int argc, char *argv[])
     }
 */
     sjg.close();
+    sje.close();
+    sjexp.close();
 }
