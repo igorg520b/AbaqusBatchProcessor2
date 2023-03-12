@@ -386,19 +386,19 @@ void Generator::CreatePy2D()
 
 void Generator::AddEntryToJobGeneratorBat(std::ofstream &s)
 {
-    s << AbaqusExecutablePath << " cae noGUI=\"";
+    s << "call " << AbaqusExecutablePath << " cae noGUI=\"";
     s << QDir::currentPath().toStdString() + "\\results\\"+fileName+".py\"\n";
 }
 
 void Generator::AddEntryToJobExecutionBat(std::ofstream &s)
 {
-    s << AbaqusExecutablePath << " job=" << fileName;
+    s << "call " << AbaqusExecutablePath << " job=" << fileName;
     s << " double=both output_precision=full cpus=12 interactive\n";
 }
 
 void Generator::AddEntryToBinaryExportBat(std::ofstream &s)
 {
-    s << AbaqusExecutablePath << " cae noGUI=\"";
+    s << "call " << AbaqusExecutablePath << " cae noGUI=\"";
     s << QDir::currentPath().toStdString() + "\\exportscripts\\"+fileName+".py\"\n";
 }
 

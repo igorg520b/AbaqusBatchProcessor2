@@ -83,38 +83,71 @@ int main(int argc, char *argv[])
     sje.open("inp\\jobexecutor.bat", std::ios_base::trunc|std::ios_base::out);
     sjexp.open("results\\jobexport.bat", std::ios_base::trunc|std::ios_base::out);
 
+/*    {
     Generator g;
     g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
     g.AddEntryToJobGeneratorBat(sjg);
     g.AddEntryToJobExecutionBat(sje);
     g.AddEntryToBinaryExportBat(sjexp);
+    }
+*/
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(keelH0[0], 5.0, 0, 7);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
 
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(keelL1[0], 6.0, 0, 6);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
+
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(rhitaL1[0], 1.0, 1.060325, 1);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
+
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(rhitaH2[0], 2.0, 2.060325, 4);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
 
 /*
     // RHITA block
     for(int i=0;i<5;i++)
     {
         Generator g;
-        g.LoadFromFileWithCrop(rhitaL1[i], 1.0, 1.111925, 1);
+        g.LoadFromFileWithCrop(rhitaL1[i], 1.0, 1.060325, 1);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
-        g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.111925, 2);
+        g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.060325, 2);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
-        g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.111925, 3);
+        g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.060325, 3);
     }
 
 
     for(int i=0;i<5;i++)
     {
         Generator g;
-        g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.111925, 4);
+        g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.060325, 4);
     }
 
     // Keel
