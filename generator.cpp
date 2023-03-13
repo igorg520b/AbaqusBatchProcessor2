@@ -113,76 +113,76 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
 
     // attach bottom
     const double iR = indenterRadius+1e-3;
+    spdlog::info("cropStart {}; cropEnd {}", cropStart, cropEnd);
+    double fXT = 0, fYT = 0; // total force applied to foced nodes
+    double a1 = 0, a2 = 0, alpha = 0, attachY=0;
     if(cropType >=1 && cropType <=4)
     {
-        double alpha = forceAngle * pi/180.;
-        fX = forceMagnitude * cos(alpha);
-        fY = -forceMagnitude * sin(alpha);
-        const double bH = (cropType == 1 || cropType == 2) ? 1.0 : 2.0; // block height
-        double a1 = -1.570796326794897;
-        double a2 = -1.16698;
-        for(icy::Node2D &nd : mesh2d.nodes)
-        {
-            double y = nd.x0.y();
-            double dx = nd.x0.x()-indenterX;
-            double dy = nd.x0.y()-indenterY;
-            if(y==0)
-            {
-                nd.group = 2;
-            }
-            else if(dx*dx+dy*dy <= iR*iR)
-            {
-                double a = atan2(dy,dx);
-                if(a>=a1 && a<=a2) nd.group=5;
-            }
-        }
-
+        alpha = -forceAngle * pi/180.;
+        a1 = -cropEnd;
+        a2 = -cropStart;
+        attachY = 0;
     }
     else if(cropType == 5 || cropType == 6)
     {
-        double a1 = 1.570796326794897;
-        double a2 = 2.356194490192345;
-        double avg = (a1+a2)/2;
-        fX = 1e6 * cos(avg);
-        fY = 1e6 * sin(avg);
-        for(icy::Node2D &nd : mesh2d.nodes)
-        {
-            double y = nd.x0.y();
-            double dx = nd.x0.x()-indenterX;
-            double dy = nd.x0.y()-indenterY;
-            if(y>1.0-1e-5) nd.group = 2;
-            else if(dx*dx+dy*dy <= iR*iR)
-            {
-                double a = atan2(dy,dx);
-                if(a>=a1 && a<=a2) nd.group=5;
-            }
-        }
+        alpha = (forceAngle+90) * pi/180.;
+        a1 = cropStart + pi/2;
+        a2 = cropEnd + pi/2;
+        attachY = 1;
     }
     else if(cropType == 7 || cropType == 8)
     {
-        double a1 = 1.570796326794897;
-        double a2 = 2.356194490192345;
-        double avg = (a1+a2)/2;
-        fX = 1e6 * cos(avg);
-        fY = 1e6 * sin(avg);
-        for(icy::Node2D &nd : mesh2d.nodes)
+        alpha = (forceAngle+90) * pi/180.;
+        a1 = cropStart + pi/2;
+        a2 = cropEnd + pi/2;
+        attachY = 2;
+    }
+
+    fX = forceMagnitude * cos(alpha);
+    fY = forceMagnitude * sin(alpha);
+    spdlog::info("fX {}; fY {}", fX, fY);
+
+    for(icy::Node2D &nd : mesh2d.nodes)
+    {
+        double y = nd.x0.y();
+        double dx = nd.x0.x()-indenterX;
+        double dy = nd.x0.y()-indenterY;
+        if(y>= attachY-1e-5 && y<=attachY+1e-5)
         {
-            double y = nd.x0.y();
-            double dx = nd.x0.x()-indenterX;
-            double dy = nd.x0.y()-indenterY;
-            if(y>2.0-1e-5) nd.group = 2;
-            else if(dx*dx+dy*dy <= iR*iR)
-            {
-                double a = atan2(dy,dx);
-                if(a>=a1 && a<=a2) nd.group=5;
+            nd.group = 2;
+        }
+        else if(dx*dx+dy*dy <= iR*iR)
+        {
+            double a = atan2(dy,dx);
+            if(a>=a1 && a<=a2) {
+                nd.group=5;
+                forcedNodes.push_back(nd.globId);
+                if(useNormalDistribution)
+                {
+                    double ndval = normalDistribution(abs((a2-a1)/6), (a1+a2)*0.5, a);
+                    nd.f.x() = nd.f.y() = ndval;
+                }
+                else
+                {
+                    nd.f.x() = nd.f.y() = 1;
+                }
+                fXT += nd.f.x();
+                fYT += nd.f.y();
             }
         }
     }
-
-
+    double fTot = 0;
+    for(icy::Node2D &nd : mesh2d.nodes)
+    {
+        if(nd.group!=5) continue;
+        nd.f.x() *= (fX/fXT);
+        nd.f.y() *= (fY/fYT);
+        spdlog::info("node {}; fx {}; fy {}; fnorm {}", nd.globId, nd.f.x(), nd.f.y(), nd.f.norm());
+        fTot += nd.f.norm();
+    }
+    spdlog::info("ftot {}", fTot);
+    spdlog::info("cropType {}, forcedNodes {}", cropType, forcedNodes.size());
     spdlog::info("nds {}; elems {}; czs {}; grains {}", mesh2d.nodes.size(), mesh2d.elems.size(), mesh2d.czs.size(), dimTagsGrains.size());
-
-
 
     QFileInfo fi(QString(MSHFileName.c_str()));
     fileName = fi.baseName().toStdString();
@@ -191,6 +191,13 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     CreateExportScript();
 
     spdlog::info("LoadFromFile done");
+}
+
+
+double Generator::normalDistribution(const double sigma, const double mu, const double x)
+{
+    double xt = (x-mu)/sigma;
+    return exp(-0.5*xt*xt);
 }
 
 
@@ -270,6 +277,13 @@ void Generator::CreatePy2D()
     s << ")\n";
     s << "p.Set(nodes=region3pinned,name='Set3-pinned')\n";
 
+    for(int k : forcedNodes)
+    {
+        s << "region" << k << "f = (";
+        s << "p.nodes["<<k<<":"<<k+1<<"])\n";
+        s << "p.Set(nodes=region"<<k<<"f,name='Set" << k << "-f')\n";
+    }
+    /*
     // forced nodes
     s << "region5forced = (";
     for(const icy::Node2D &nd : mesh2d.nodes)
@@ -277,6 +291,7 @@ void Generator::CreatePy2D()
             s << "p.nodes["<<nd.globId<<":"<<nd.globId+1<<"],";
     s << ")\n";
     s << "p.Set(nodes=region5forced,name='Set5-forced')\n";
+*/
 
     // create bulk material
     s << "mat1 = mdb.models['Model-1'].Material(name='Material-1-bulk')\n";
@@ -335,15 +350,26 @@ void Generator::CreatePy2D()
     // gravity load
     s << "mdb.models['Model-1'].Gravity(name='Load-1', createStepName='Step-1',comp2=-10.0, distributionType=UNIFORM, field='')\n";
 
-    // force load
+    // force load on the nodes
     s << "mdb.models['Model-1'].TabularAmplitude(data=((0.0, 0.0), (0.1, 1.0)), name="
          "'Amp-1', smooth=SOLVER_DEFAULT, timeSpan=STEP)\n";
 
+    for(int k : forcedNodes)
+    {
+        s << "mdb.models['Model-1'].ConcentratedForce(amplitude='Amp-1', cf1=" << mesh2d.nodes[k].f.x() <<
+             ", cf2=" << mesh2d.nodes[k].f.y() <<
+             ", createStepName='Step-1', distributionType=UNIFORM, field='', "
+             "localCsys=None, name='Load-"<<k<<"', region="
+             "mdb.models['Model-1'].rootAssembly.instances['MyPart1-1'].sets['Set"<<k<<"-f'])\n";
+    }
+
+
+/*
     s << "mdb.models['Model-1'].ConcentratedForce(amplitude='Amp-1', cf1=" << fX << ", cf2=" << fY <<
          ", createStepName='Step-1', distributionType=UNIFORM, field='', "
          "localCsys=None, name='Load-2', region="
          "mdb.models['Model-1'].rootAssembly.instances['MyPart1-1'].sets['Set5-forced'])\n";
-
+*/
     // BC - pinned nodes
     s << "region = inst1.sets['Set3-pinned']\n";
     s << "mdb.models['Model-1'].EncastreBC(name='BC-1', createStepName='Initial', region=region, localCsys=None)\n";

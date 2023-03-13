@@ -20,13 +20,13 @@ public:
 
     constexpr static double indenterRadius = 0.161925;
     constexpr static double indentationDepth = 0.1016; // 4" in meters
-    constexpr static double forceMagnitude = 6e5;
+    constexpr static double forceMagnitude = 1e6;
     constexpr static double pi = 3.14159265358979323846;
-    constexpr static double forceAngle = 45*pi/180.; // in degrees
+    constexpr static double forceAngle = 40; // in degrees
     constexpr static double cropStart = tekscanRowToAngle(10);
     constexpr static double cropEnd = tekscanRowToAngle(20);
 
-    constexpr static bool useNormalDistribution = false;
+    constexpr static bool useNormalDistribution = true;
 
     constexpr static double timeToRun = 0.06;
     constexpr static int nFrames = 600;
@@ -53,6 +53,10 @@ private:
     std::string fileName;
     void CreatePy2D();
     void CreateExportScript();
+
+    static double uniformDistribution(const double s, const double e, const double x);
+    static double normalDistribution(const double sigma, const double mu, const double x);
+    std::vector<int> forcedNodes; // a list of the nodes to which the force is applied (nd.group==5)
 };
 
 #endif // GENERATOR_H

@@ -83,30 +83,7 @@ int main(int argc, char *argv[])
     sje.open("inp\\jobexecutor.bat", std::ios_base::trunc|std::ios_base::out);
     sjexp.open("results\\jobexport.bat", std::ios_base::trunc|std::ios_base::out);
 
-/*    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-*/
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelH0[0], 5.0, 0, 7);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelL1[0], 6.0, 0, 6);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
+/*
     {
     Generator g;
     g.LoadFromFileWithCrop(rhitaL1[0], 1.0, 1.060325, 1);
@@ -123,7 +100,34 @@ int main(int argc, char *argv[])
     g.AddEntryToBinaryExportBat(sjexp);
     }
 
-/*
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
+
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(keelH0[0], 5.0, 0, 7);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
+
+    {
+    Generator g;
+    g.LoadFromFileWithCrop(keelL1[0], 6.0, 0, 6);
+    g.AddEntryToJobGeneratorBat(sjg);
+    g.AddEntryToJobExecutionBat(sje);
+    g.AddEntryToBinaryExportBat(sjexp);
+    }
+*/
+
+
+
+
     // RHITA block
     for(int i=0;i<5;i++)
     {
@@ -174,7 +178,7 @@ int main(int argc, char *argv[])
         Generator g;
         g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
     }
-*/
+
     sjg.close();
     sje.close();
     sjexp.close();

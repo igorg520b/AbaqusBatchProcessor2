@@ -17,7 +17,7 @@ struct icy::Node2D
     bool surface;
     int group = 0;
 
-    Eigen::Vector2d x0;    // pos-initial, pos-current, velocity-current, pos-tentative
+    Eigen::Vector2d x0, f;    // pos-initial, pos-current, velocity-current, pos-tentative
 
     std::vector<uint32_t> incident_faces; // list of faces that connect to this node; to highest bits indicate face # in element
 
