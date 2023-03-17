@@ -343,8 +343,8 @@ void Generator::CreatePy2D()
 
     // create field output request
     s << "mdb.models['Model-1'].fieldOutputRequests['F-Output-1'].setValues(numIntervals=" << nFrames <<
-         ",variables=('S', 'SVAVG', 'PE', 'PEVAVG', 'PEEQ', 'PEEQVAVG', 'LE', "
-             "'U', 'V', 'A', 'CSTRESS', 'DAMAGEC', 'DAMAGET', 'DAMAGESHR', 'EVF', "
+         ",variables=('S', 'SVAVG', 'RF',"
+             "'U', 'V', "
              "'STATUS', 'SDEG'))\n";
 
     // gravity load
@@ -390,8 +390,8 @@ void Generator::CreatePy2D()
     //create job
     s << "mdb.Job(name='" << fileName << "', model='Model-1', description='', type=ANALYSIS,"
                                         "atTime=None, waitMinutes=0, waitHours=0, queue=None, memory=90,"
-                                        "memoryUnits=PERCENTAGE, explicitPrecision=DOUBLE,"
-                                        "nodalOutputPrecision=FULL, echoPrint=OFF, modelPrint=OFF,"
+                                        "memoryUnits=PERCENTAGE, explicitPrecision=SINGLE,"
+                                        "nodalOutputPrecision=SINGLE, echoPrint=OFF, modelPrint=OFF,"
                                         "contactPrint=OFF, historyPrint=OFF, userSubroutine='', scratch='',"
                                         "resultsFormat=ODB, parallelizationMethodExplicit=DOMAIN, numDomains="
       <<numberOfCores<<","
@@ -419,7 +419,8 @@ void Generator::AddEntryToJobGeneratorBat(std::ofstream &s)
 void Generator::AddEntryToJobExecutionBat(std::ofstream &s)
 {
     s << "call " << AbaqusExecutablePath << " job=" << fileName;
-    s << " double=both output_precision=full cpus=12 interactive\n";
+//    s << " double=both output_precision=full cpus=12 interactive\n";
+    s << " cpus=12 interactive\n";
 }
 
 void Generator::AddEntryToBinaryExportBat(std::ofstream &s)
@@ -476,14 +477,14 @@ void Generator::CreateExportScript()
     s<< "f.write(struct.pack('d', " << indenterY << "))\n";
 
     s << "arrNdLabels = array.array('i',(0 for i in range(0,nNodes)))\n"
-    "arrNdCoordinates = array.array('d', (0 for i in range(0,nNodes*2)))\n"
+    "arrNdCoordinates = array.array('f', (0 for i in range(0,nNodes*2)))\n"
     "for k in range(nNodes):\n"
     "    arrNdLabels[k] = nds[k].label\n"
     "    arrNdCoordinates[k*2+0] = nds[k].coordinates[0]\n"
     "    arrNdCoordinates[k*2+1] = nds[k].coordinates[1]\n"
     "buf = struct.pack('%si' % len(arrNdLabels), *arrNdLabels)\n"
     "f.write(buf)\n"
-    "buf = struct.pack('%sd' % len(arrNdCoordinates), *arrNdCoordinates)\n"
+    "buf = struct.pack('%sf' % len(arrNdCoordinates), *arrNdCoordinates)\n"
     "f.write(buf)\n";
 
 
@@ -511,13 +512,13 @@ void Generator::CreateExportScript()
     "f.write(buf)\n";
 
 
-    s << "arrFrameNodeData = array.array('d', (0 for i in range(0,nNodeValues*4))) #U, V\n"
+    s << "arrFrameNodeData = array.array('f', (0 for i in range(0,nNodeValues*4))) #U, V\n"
     "arrFrameNodeLabels = array.array('i', (0 for i in range(0,nNodeValues*2)))\n"
-    "arrFrameStressData = array.array('d', (0 for i in range(0,nStressValues*3))) # mises, max principal, min principal\n"
+    "arrFrameStressData = array.array('f', (0 for i in range(0,nStressValues*3))) # mises, max principal, min principal\n"
     "arrFrameStressLabelsAndType = array.array('i', (0 for i in range(0,nStressValues*2))) # label; type\n"
-    "arrFrameSDEGData = array.array('d', (0 for i in range(0,nSDEGValues))) # only for saving SDEG for CZs\n"
+    "arrFrameSDEGData = array.array('f', (0 for i in range(0,nSDEGValues))) # only for saving SDEG for CZs\n"
     "arrFrameSDEGLabels = array.array('i', (0 for i in range(0,nSDEGValues))) # element labels for CZs\n"
-    "arrFrameStatusData = array.array('d', (0 for i in range(0,nTrianglesInFrame))) # mises, max principal, min principal\n"
+    "arrFrameStatusData = array.array('f', (0 for i in range(0,nTrianglesInFrame))) # mises, max principal, min principal\n"
     "arrFrameTrisLabels = array.array('i', (0 for i in range(0,nTrianglesInFrame*2))) # label; type\n";
 
 
@@ -537,17 +538,18 @@ void Generator::CreateExportScript()
     "    # node data per frame\n"
     "    for j in range(nNodeValues):\n"
     "        arrFrameNodeLabels[j*2+0] = frUval[j].nodeLabel\n"
-    "        arrFrameNodeData[j*4+0] = frUval[j].dataDouble[0]\n"
-    "        arrFrameNodeData[j*4+1] = frUval[j].dataDouble[1]\n"
-    "        arrFrameNodeData[j*4+2] = frVval[j].dataDouble[0]\n"
-    "        arrFrameNodeData[j*4+3] = frVval[j].dataDouble[1]\n"
+    "        arrFrameNodeData[j*4+0] = frUval[j].data[0]\n"
+    "        arrFrameNodeData[j*4+1] = frUval[j].data[1]\n"
+    "        arrFrameNodeData[j*4+2] = frVval[j].data[0]\n"
+    "        arrFrameNodeData[j*4+3] = frVval[j].data[1]\n"
+
     "        if(frUval[j].instance == inst_block):\n"
     "            arrFrameNodeLabels[j*2+1] = 1 # node belongs to the block\n"
     "        else:\n"
     "            arrFrameNodeLabels[j*2+1] = -1\n"
 
     "    buf1 = struct.pack('%si' % len(arrFrameNodeLabels),*arrFrameNodeLabels)\n"
-    "    buf2 = struct.pack('%sd' % len(arrFrameNodeData),*arrFrameNodeData)\n"
+    "    buf2 = struct.pack('%sf' % len(arrFrameNodeData),*arrFrameNodeData)\n"
     "    f.write(buf1)\n"
     "    f.write(buf2)\n"
 
@@ -572,9 +574,9 @@ void Generator::CreateExportScript()
     "            arrFrameSDEGLabels[j] = -1\n"
 
     "    buf1 = struct.pack('%si' % len(arrFrameStressLabelsAndType),*arrFrameStressLabelsAndType)\n"
-    "    buf2 = struct.pack('%sd' % len(arrFrameStressData),*arrFrameStressData)\n"
+    "    buf2 = struct.pack('%sf' % len(arrFrameStressData),*arrFrameStressData)\n"
     "    buf3 = struct.pack('%si' % len(arrFrameSDEGLabels),*arrFrameSDEGLabels)\n"
-    "    buf4 = struct.pack('%sd' % len(arrFrameSDEGData),*arrFrameSDEGData)\n"
+    "    buf4 = struct.pack('%sf' % len(arrFrameSDEGData),*arrFrameSDEGData)\n"
     "    f.write(buf1)\n"
     "    f.write(buf2)\n"
     "    f.write(buf3)\n"
@@ -591,7 +593,7 @@ void Generator::CreateExportScript()
     "            arrFrameTrisLabels[j*2+1] = -1\n"
     "        arrFrameStatusData[j] = frSTATUSval[j].data\n"
     "    buf1 = struct.pack('%si' % len(arrFrameTrisLabels),*arrFrameTrisLabels)\n"
-    "    buf2 = struct.pack('%sd' % len(arrFrameStatusData),*arrFrameStatusData)\n"
+    "    buf2 = struct.pack('%sf' % len(arrFrameStatusData),*arrFrameStatusData)\n"
     "    f.write(buf1)\n"
     "    f.write(buf2)\n"
 

@@ -79,72 +79,36 @@ int main(int argc, char *argv[])
     if(!QDir("exportscripts").exists()) QDir().mkdir("exportscripts");
 
     std::ofstream sjg, sje,sjexp;
-    sjg.open("results\\jobgenerator.bat", std::ios_base::trunc|std::ios_base::out);
-    sje.open("inp\\jobexecutor.bat", std::ios_base::trunc|std::ios_base::out);
-    sjexp.open("results\\jobexport.bat", std::ios_base::trunc|std::ios_base::out);
-
-/*
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(rhitaL1[0], 1.0, 1.060325, 1);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(rhitaH2[0], 2.0, 2.060325, 4);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelL0[0], 5.0, 0, 5);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelH0[0], 5.0, 0, 7);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-
-    {
-    Generator g;
-    g.LoadFromFileWithCrop(keelL1[0], 6.0, 0, 6);
-    g.AddEntryToJobGeneratorBat(sjg);
-    g.AddEntryToJobExecutionBat(sje);
-    g.AddEntryToBinaryExportBat(sjexp);
-    }
-*/
-
-
-
+    sjg.open("results\\jg.bat", std::ios_base::trunc|std::ios_base::out);
+    sje.open("inp\\jxc.bat", std::ios_base::trunc|std::ios_base::out);
+    sjexp.open("results\\jexp.bat", std::ios_base::trunc|std::ios_base::out);
 
     // RHITA block
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(rhitaL1[i], 1.0, 1.060325, 1);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(rhitaL2[i], 2.0, 1.060325, 2);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(rhitaH1[i], 1.0, 2.060325, 3);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
 
@@ -152,6 +116,9 @@ int main(int argc, char *argv[])
     {
         Generator g;
         g.LoadFromFileWithCrop(rhitaH2[i], 2.0, 2.060325, 4);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     // Keel
@@ -159,24 +126,36 @@ int main(int argc, char *argv[])
     {
         Generator g;
         g.LoadFromFileWithCrop(keelL0[i], 5.0, 0, 5);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(keelL1[i], 6.0, 0, 6);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(keelH0[i], 5.0, 0, 7);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     for(int i=0;i<5;i++)
     {
         Generator g;
         g.LoadFromFileWithCrop(keelH1[i], 6.0, 0, 8);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
     }
 
     sjg.close();

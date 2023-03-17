@@ -28,8 +28,8 @@ public:
 
     constexpr static bool useNormalDistribution = true;
 
-    constexpr static double timeToRun = 0.06;
-    constexpr static int nFrames = 600;
+    constexpr static double timeToRun = 0.12;
+    constexpr static int nFrames = 400;
 
     constexpr static int numberOfCores = 12;
     constexpr static double YoungsModulus = 9e9;
