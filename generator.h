@@ -22,14 +22,14 @@ public:
     constexpr static double indentationDepth = 0.1016; // 4" in meters
     constexpr static double forceMagnitude = 1e6;
     constexpr static double pi = 3.14159265358979323846;
-    constexpr static double forceAngle = 40; // in degrees
-    constexpr static double cropStart = tekscanRowToAngle(10);
-    constexpr static double cropEnd = tekscanRowToAngle(20);
+    constexpr static double cropStart = tekscanRowToAngle(20);  // angle 60
+    constexpr static double cropEnd = tekscanRowToAngle(30);    // angle 77
+    constexpr static double forceAngle = (cropStart+cropEnd)/2; // in degrees
 
-    constexpr static bool useNormalDistribution = true;
+    constexpr static bool useNormalDistribution = false;
 
-    constexpr static double timeToRun = 0.12;
-    constexpr static int nFrames = 400;
+    constexpr static double timeToRun = 0.2;
+    constexpr static int nFrames = 450;
 
     constexpr static int numberOfCores = 12;
     constexpr static double YoungsModulus = 9e9;

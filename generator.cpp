@@ -74,8 +74,6 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
                 // cropType 8 -> tall keel with indenter at 6.0
                 if(cropType >=1 && cropType <=4 && x < indenterX && y > (indenterY-indenterRadius)) crop = true;
                 if(cropType >=5 && cropType <=8 && x > indenterX && y < (indenterRadius)) crop = true;
-
-
             }
             if(crop) continue;
 
@@ -118,25 +116,21 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     double a1 = 0, a2 = 0, alpha = 0, attachY=0;
     if(cropType >=1 && cropType <=4)
     {
-        alpha = -forceAngle * pi/180.;
+        alpha = -forceAngle;
         a1 = -cropEnd;
         a2 = -cropStart;
         attachY = 0;
     }
-    else if(cropType == 5 || cropType == 6)
+    else
     {
-        alpha = (forceAngle+90) * pi/180.;
-        a1 = cropStart + pi/2;
-        a2 = cropEnd + pi/2;
-        attachY = 1;
+        alpha = pi-forceAngle;
+        a1 = pi-cropEnd;
+        a2 = pi-cropStart;
+        if(cropType == 5 || cropType == 6) attachY = 1;
+        else if(cropType == 7 || cropType == 8) attachY = 2;
     }
-    else if(cropType == 7 || cropType == 8)
-    {
-        alpha = (forceAngle+90) * pi/180.;
-        a1 = cropStart + pi/2;
-        a2 = cropEnd + pi/2;
-        attachY = 2;
-    }
+
+    spdlog::info("a1 {}, a2 {}, force {}", a1*180/pi, a2*180/pi, alpha*180/pi);
 
     fX = forceMagnitude * cos(alpha);
     fY = forceMagnitude * sin(alpha);
@@ -351,7 +345,7 @@ void Generator::CreatePy2D()
     s << "mdb.models['Model-1'].Gravity(name='Load-1', createStepName='Step-1',comp2=-10.0, distributionType=UNIFORM, field='')\n";
 
     // force load on the nodes
-    s << "mdb.models['Model-1'].TabularAmplitude(data=((0.0, 0.0), (0.1, 1.0)), name="
+    s << "mdb.models['Model-1'].TabularAmplitude(data=((0.0, 0.0), (1.0, 10.0)), name="
          "'Amp-1', smooth=SOLVER_DEFAULT, timeSpan=STEP)\n";
 
     for(int k : forcedNodes)
