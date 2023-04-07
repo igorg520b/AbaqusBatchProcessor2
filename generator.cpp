@@ -87,8 +87,9 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
         }
     }
     mesh2d.nodes.erase(std::remove_if(mesh2d.nodes.begin(), mesh2d.nodes.end(),
-                                      [used_nodes](const icy::Node2D &nd){ return used_nodes.count(nd.globId)==0 ? true : false;}),
-            mesh2d.nodes.end());
+                                      [used_nodes](const icy::Node2D &nd)
+                                        { return used_nodes.count(nd.globId)==0 ? true : false;}),
+                                         mesh2d.nodes.end());
 
     std::unordered_map<int,int> updatedNodeIds; // oldId -> newId
 
@@ -109,7 +110,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     for(icy::Element2D &elem : mesh2d.elems) elem.Precompute(mesh2d.nodes);     // Dm matrix and volume
 
 
-    // attach bottom
+    // attach bottom, sides(if needed) and mark forced nodes0
     const double iR = indenterRadius+1e-3;
     spdlog::info("cropStart {}; cropEnd {}", cropStart, cropEnd);
     double fXT = 0, fYT = 0; // total force applied to foced nodes
@@ -136,19 +137,32 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     fY = forceMagnitude * sin(alpha);
     spdlog::info("fX {}; fY {}", fX, fY);
 
+    constexpr double epsilon = 1e-5;
     for(icy::Node2D &nd : mesh2d.nodes)
     {
         double y = nd.x0.y();
-        double dx = nd.x0.x()-indenterX;
-        double dy = nd.x0.y()-indenterY;
-        if(y>= attachY-1e-5 && y<=attachY+1e-5)
+        double x = nd.x0.x();
+        double dx = x-indenterX;
+        double dy = y-indenterY;
+
+        if(attachSides && cropType >=1 && cropType <=4)
+        {
+            double blockHeight=0;
+            if(cropType == 1 || cropType == 2) blockHeight = 1;
+            else if(cropType == 3 || cropType == 4) blockHeight = 2;
+            if((x<epsilon || abs(x-2.5)<=epsilon) && y < blockHeight/2) nd.group = 2;
+        }
+
+
+        if(abs(y-attachY) <= epsilon)
         {
             nd.group = 2;
         }
         else if(dx*dx+dy*dy <= iR*iR)
         {
             double a = atan2(dy,dx);
-            if(a>=a1 && a<=a2) {
+            if(a>=a1 && a<=a2)
+            {
                 nd.group=5;
                 forcedNodes.push_back(nd.globId);
                 if(useNormalDistribution)
