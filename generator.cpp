@@ -223,9 +223,9 @@ void Generator::CreatePy2D()
     s << "import regionToolset\n";
     s << "import os\n";
 
-    s << "os.chdir(r\"";
-    s << QDir::currentPath().toStdString() << "\\inp";
-    s << "\")\n";
+//    s << "os.chdir(r\"";
+//    s << QDir::currentPath().toStdString() << "\\inp";
+//    s << "\")\n";
 
     s << "p = mdb.models['Model-1'].Part(name='MyPart1', dimensionality=TWO_D_PLANAR, type=DEFORMABLE_BODY)\n";
 
@@ -264,7 +264,6 @@ void Generator::CreatePy2D()
         s << "elemType_coh = mesh.ElemType(elemCode=COH2D4, elemLibrary=STANDARD,"
              "distortionControl=ON, lengthRatio=0.1, elemDeletion=ON)\n";
 
-
     // region1 - bulk elements
     s << "region1 = p.elements[0:" << mesh2d.elems.size() << "]\n";
     s << "p.setElementType(regions=(region1,), elemTypes=(elemType_bulk,))\n";
@@ -291,15 +290,6 @@ void Generator::CreatePy2D()
         s << "p.nodes["<<k<<":"<<k+1<<"])\n";
         s << "p.Set(nodes=region"<<k<<"f,name='Set" << k << "-f')\n";
     }
-    /*
-    // forced nodes
-    s << "region5forced = (";
-    for(const icy::Node2D &nd : mesh2d.nodes)
-        if(nd.group==5)
-            s << "p.nodes["<<nd.globId<<":"<<nd.globId+1<<"],";
-    s << ")\n";
-    s << "p.Set(nodes=region5forced,name='Set5-forced')\n";
-*/
 
     // create bulk material
     s << "mat1 = mdb.models['Model-1'].Material(name='Material-1-bulk')\n";
@@ -372,12 +362,6 @@ void Generator::CreatePy2D()
     }
 
 
-/*
-    s << "mdb.models['Model-1'].ConcentratedForce(amplitude='Amp-1', cf1=" << fX << ", cf2=" << fY <<
-         ", createStepName='Step-1', distributionType=UNIFORM, field='', "
-         "localCsys=None, name='Load-2', region="
-         "mdb.models['Model-1'].rootAssembly.instances['MyPart1-1'].sets['Set5-forced'])\n";
-*/
     // BC - pinned nodes
     s << "region = inst1.sets['Set3-pinned']\n";
     s << "mdb.models['Model-1'].EncastreBC(name='BC-1', createStepName='Initial', region=region, localCsys=None)\n";
@@ -406,7 +390,6 @@ void Generator::CreatePy2D()
                        "activateLoadBalancing=False, numThreadsPerMpiProcess=1,"
                        "multiprocessingMode=DEFAULT, numCpus="<<numberOfCores<<")\n";
 
-
      // write .inp file
     s << "mdb.jobs['" << fileName << "'].writeInput(consistencyChecking=OFF)\n";
 
@@ -420,8 +403,7 @@ void Generator::CreatePy2D()
 
 void Generator::AddEntryToJobGeneratorBat(std::ofstream &s)
 {
-    s << "call " << AbaqusExecutablePath << " cae noGUI=\"";
-    s << QDir::currentPath().toStdString() + "\\results\\"+fileName+".py\"\n";
+    s << "call " << AbaqusExecutablePath << " cae noGUI="+fileName+".py\n";
 }
 
 void Generator::AddEntryToJobExecutionBat(std::ofstream &s)
@@ -433,14 +415,13 @@ void Generator::AddEntryToJobExecutionBat(std::ofstream &s)
 
 void Generator::AddEntryToBinaryExportBat(std::ofstream &s)
 {
-    s << "call " << AbaqusExecutablePath << " cae noGUI=\"";
-    s << QDir::currentPath().toStdString() + "\\exportscripts\\"+fileName+".py\"\n";
+    s << "call " << AbaqusExecutablePath << " cae noGUI=exp_"+fileName+".py\n";
 }
 
 void Generator::CreateExportScript()
 {
     std::ofstream s;
-    s.open("exportscripts\\"+fileName+".py", std::ios_base::trunc|std::ios_base::out);
+    s.open("results\\exp_"+fileName+".py", std::ios_base::trunc|std::ios_base::out);
 
 
     s << "from odbAccess import *\n"
@@ -457,7 +438,7 @@ void Generator::CreateExportScript()
     "import struct\n";
 
     s << "fileName='" << fileName << "'\n";
-    s << "fodb = openOdb(path=r'" << QDir::currentPath().toStdString() << "/inp/'+fileName+'.odb')\n";
+    s << "fodb = openOdb(path=fileName+'.odb')\n";
     s << "ma = fodb.rootAssembly\n"
     "f = open(fileName+'.bin', \"wb\")\n"
     "inst_block = ma.instances['MYPART1-1']\n"
@@ -495,7 +476,6 @@ void Generator::CreateExportScript()
     "buf = struct.pack('%sf' % len(arrNdCoordinates), *arrNdCoordinates)\n"
     "f.write(buf)\n";
 
-
     s << "arrElemData = array.array('i', (0 for i in range(0,nElems*6)))\n"
     "nCZS = 0\n"
     "nTriangles = 0\n"
@@ -519,16 +499,14 @@ void Generator::CreateExportScript()
     "buf = struct.pack('%si' % len(arrElemData), *arrElemData)\n"
     "f.write(buf)\n";
 
-
-    s << "arrFrameNodeData = array.array('f', (0 for i in range(0,nNodeValues*4))) #U, V\n"
+    s << "arrFrameNodeData = array.array('f', (0 for i in range(0,nNodeValues*6))) #U, V\n"
     "arrFrameNodeLabels = array.array('i', (0 for i in range(0,nNodeValues*2)))\n"
-    "arrFrameStressData = array.array('f', (0 for i in range(0,nStressValues*3))) # mises, max principal, min principal\n"
+    "arrFrameStressData = array.array('f', (0 for i in range(0,nStressValues*3)))\n"
     "arrFrameStressLabelsAndType = array.array('i', (0 for i in range(0,nStressValues*2))) # label; type\n"
     "arrFrameSDEGData = array.array('f', (0 for i in range(0,nSDEGValues))) # only for saving SDEG for CZs\n"
     "arrFrameSDEGLabels = array.array('i', (0 for i in range(0,nSDEGValues))) # element labels for CZs\n"
-    "arrFrameStatusData = array.array('f', (0 for i in range(0,nTrianglesInFrame))) # mises, max principal, min principal\n"
+    "arrFrameStatusData = array.array('f', (0 for i in range(0,nTrianglesInFrame)))\n"
     "arrFrameTrisLabels = array.array('i', (0 for i in range(0,nTrianglesInFrame*2))) # label; type\n";
-
 
     s << "print(\"nFrames {0}; nNodeValues {1}\".format(nFrames, nNodeValues))\n"
 
@@ -539,6 +517,7 @@ void Generator::CreateExportScript()
     "    frUval = fr.fieldOutputs['U'].values\n"
     "    frVval = fr.fieldOutputs['V'].values\n"
     "    frSval = fr.fieldOutputs['S'].values\n"
+    "    frRFval = fr.fieldOutputs['RF'].values\n"
     "    frSDEGval = fr.fieldOutputs['SDEG'].values\n"
     "    frSTATUSval = fr.fieldOutputs['STATUS'].values\n"
     "    f.write(struct.pack('d', frTime))\n"
@@ -546,10 +525,12 @@ void Generator::CreateExportScript()
     "    # node data per frame\n"
     "    for j in range(nNodeValues):\n"
     "        arrFrameNodeLabels[j*2+0] = frUval[j].nodeLabel\n"
-    "        arrFrameNodeData[j*4+0] = frUval[j].data[0]\n"
-    "        arrFrameNodeData[j*4+1] = frUval[j].data[1]\n"
-    "        arrFrameNodeData[j*4+2] = frVval[j].data[0]\n"
-    "        arrFrameNodeData[j*4+3] = frVval[j].data[1]\n"
+    "        arrFrameNodeData[j*6+0] = frUval[j].data[0]\n"
+    "        arrFrameNodeData[j*6+1] = frUval[j].data[1]\n"
+    "        arrFrameNodeData[j*6+2] = frVval[j].data[0]\n"
+    "        arrFrameNodeData[j*6+3] = frVval[j].data[1]\n"
+    "        arrFrameNodeData[j*6+4] = frRFval[j].data[0]\n"
+    "        arrFrameNodeData[j*6+5] = frRFval[j].data[1]\n"
 
     "        if(frUval[j].instance == inst_block):\n"
     "            arrFrameNodeLabels[j*2+1] = 1 # node belongs to the block\n"
@@ -610,5 +591,4 @@ void Generator::CreateExportScript()
     "print(\"done\")\n";
 
     s.close();
-
 }

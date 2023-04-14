@@ -75,12 +75,10 @@ int main(int argc, char *argv[])
 
 
     if(!QDir("results").exists()) QDir().mkdir("results");
-    if(!QDir("inp").exists()) QDir().mkdir("inp");
-    if(!QDir("exportscripts").exists()) QDir().mkdir("exportscripts");
 
     std::ofstream sjg, sje,sjexp;
     sjg.open("results\\jg.bat", std::ios_base::trunc|std::ios_base::out);
-    sje.open("inp\\jxc.bat", std::ios_base::trunc|std::ios_base::out);
+    sje.open("results\\jxc.bat", std::ios_base::trunc|std::ios_base::out);
     sjexp.open("results\\jexp.bat", std::ios_base::trunc|std::ios_base::out);
 
     // RHITA block

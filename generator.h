@@ -27,7 +27,7 @@ public:
     constexpr static double forceAngle = (cropStart+cropEnd)/2; //40*pi/180;
 
     constexpr static bool useNormalDistribution = false;
-    constexpr static bool attachSides = true; // generate blocks with boundary condition on the sides
+    constexpr static bool attachSides = false; // generate blocks with boundary condition on the sides
 
     constexpr static double timeToRun = 0.2;
     constexpr static int nFrames = 450;
