@@ -22,15 +22,15 @@ public:
     constexpr static double indentationDepth = 0.1016; // 4" in meters
     constexpr static double forceMagnitude = 1e6;
     constexpr static double pi = 3.14159265358979323846;
-    constexpr static double cropStart = tekscanRowToAngle(20);
-    constexpr static double cropEnd = tekscanRowToAngle(30);
-    constexpr static double forceAngle = (cropStart+cropEnd)/2; //40*pi/180;
+    constexpr static double cropStart = tekscanRowToAngle(10);
+    constexpr static double cropEnd = tekscanRowToAngle(20);
+    constexpr static double forceAngle = 40*pi/180; // (cropStart+cropEnd)/2;
 
     constexpr static bool useNormalDistribution = false;
     constexpr static bool attachSides = false; // generate blocks with boundary condition on the sides
 
-    constexpr static double timeToRun = 0.2;
-    constexpr static int nFrames = 450;
+    constexpr static double timeToRun = 0.25;
+    constexpr static int nFrames = 560;
 
     constexpr static int numberOfCores = 12;
     constexpr static double YoungsModulus = 9e9;

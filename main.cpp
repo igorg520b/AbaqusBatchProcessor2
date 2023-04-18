@@ -24,6 +24,12 @@ int main(int argc, char *argv[])
     parser.addVersionOption();
     //    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Configuration file."));
 
+    std::string rhitaD[] {R"(C:\Users\s\Projects\GitHub\AbaqusBatchProcessor2\meshes\nbd_1_1.msh)",
+                         R"(C:\Users\s\Projects\GitHub\AbaqusBatchProcessor2\meshes\nbd_2_1.msh)",
+                         R"(C:\Users\s\Projects\GitHub\AbaqusBatchProcessor2\meshes\nbd_3_1.msh)",
+                         R"(C:\Users\s\Projects\GitHub\AbaqusBatchProcessor2\meshes\nbd_4_1.msh)",
+                         R"(C:\Users\s\Projects\GitHub\AbaqusBatchProcessor2\meshes\nbd_5_1.msh)"};
+
     std::string rhitaL1[] {"C:\\Users\\s\\Projects\\GitHub\\AbaqusBatchProcessor2\\meshes\\rhitaL1\\nbl1_1.msh",
                           "C:\\Users\\s\\Projects\\GitHub\\AbaqusBatchProcessor2\\meshes\\rhitaL1\\nbl2_1.msh",
                           "C:\\Users\\s\\Projects\\GitHub\\AbaqusBatchProcessor2\\meshes\\rhitaL1\\nbl3_1.msh",
@@ -80,6 +86,18 @@ int main(int argc, char *argv[])
     sjg.open("results\\jg.bat", std::ios_base::trunc|std::ios_base::out);
     sje.open("results\\jxc.bat", std::ios_base::trunc|std::ios_base::out);
     sjexp.open("results\\jexp.bat", std::ios_base::trunc|std::ios_base::out);
+
+/*
+    for(std::string s : rhitaD)
+    {
+        Generator g;
+        g.LoadFromFileWithCrop(s, 1.0, 1.060325, 9);
+        g.AddEntryToJobGeneratorBat(sjg);
+        g.AddEntryToJobExecutionBat(sje);
+        g.AddEntryToBinaryExportBat(sjexp);
+    }
+    */
+
 
     // RHITA block
     for(int i=0;i<5;i++)

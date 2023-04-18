@@ -72,6 +72,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
                 // cropType 6 -> small keel with indenter at 6.0
                 // cropType 7 -> tall keel with indenter at 5.0
                 // cropType 8 -> tall keel with indenter at 6.0
+                // cropType 9 -> long rectangular block with indenter at 1.0
                 if(cropType >=1 && cropType <=4 && x < indenterX && y > (indenterY-indenterRadius)) crop = true;
                 if(cropType >=5 && cropType <=8 && x > indenterX && y < (indenterRadius)) crop = true;
             }
@@ -115,7 +116,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
     spdlog::info("cropStart {}; cropEnd {}", cropStart, cropEnd);
     double fXT = 0, fYT = 0; // total force applied to foced nodes
     double a1 = 0, a2 = 0, alpha = 0, attachY=0;
-    if(cropType >=1 && cropType <=4)
+    if((cropType >=1 && cropType <=4) || cropType == 9)
     {
         alpha = -forceAngle;
         a1 = -cropEnd;
@@ -148,7 +149,7 @@ void Generator::LoadFromFileWithCrop(std::string MSHFileName, double indenterX, 
         if(attachSides && cropType >=1 && cropType <=4)
         {
             double blockHeight=0;
-            if(cropType == 1 || cropType == 2) blockHeight = 1;
+            if(cropType == 1 || cropType == 2 || cropType == 9) blockHeight = 1;
             else if(cropType == 3 || cropType == 4) blockHeight = 2;
             if((x<epsilon || abs(x-2.5)<=epsilon) && y < blockHeight/2) nd.group = 2;
         }
@@ -368,7 +369,7 @@ void Generator::CreatePy2D()
 
 
     // rigid body constraint
-
+/*
     // create interaction property - hard collisions
     s << "mdb.models['Model-1'].ContactProperty('IntProp-2czs')\n";
 
@@ -377,7 +378,7 @@ void Generator::CreatePy2D()
     s << "mdb.models['Model-1'].interactionProperties['IntProp-2czs'].NormalBehavior("
          "pressureOverclosure=HARD, allowSeparation=ON, "
          "constraintEnforcementMethod=DEFAULT)\n";
-
+*/
 
     //create job
     s << "mdb.Job(name='" << fileName << "', model='Model-1', description='', type=ANALYSIS,"
