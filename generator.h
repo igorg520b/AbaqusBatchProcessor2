@@ -29,8 +29,8 @@ public:
     constexpr static bool useNormalDistribution = false;
     constexpr static bool attachSides = false; // generate blocks with boundary condition on the sides
 
-    constexpr static double timeToRun = 0.25;
-    constexpr static int nFrames = 560;
+    constexpr static double timeToRun = 0.3;
+    constexpr static int nFrames = 600;
 
     constexpr static int numberOfCores = 12;
     constexpr static double YoungsModulus = 9e9;
